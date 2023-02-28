@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { Dir } from "fs";
 import { dirname, join } from "path";
 import uniqid from "uniqid";
+import uiavatars from "ui-avatars";
 
 const authorsRouter = Express.Router();
 
@@ -43,10 +44,23 @@ authorsRouter.post("/", (req, res) => {
     return;
   }
 
+  const avatarURL = uiavatars.generateAvatar({
+    uppercase: true,
+    name: req.body.name + req.body.surname,
+    background: "990000",
+    color: "000000",
+    fontsize: 0.5,
+    bold: true,
+    length: 2,
+    rounded: true,
+    size: 250,
+  });
+
   const newAuthor = {
     ...req.body,
     createdAt: new Date(),
     updatedAt: new Date(),
+    avatar: avatarURL,
     id: uniqid(),
   };
 
