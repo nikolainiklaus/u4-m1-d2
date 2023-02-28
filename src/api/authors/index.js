@@ -32,6 +32,17 @@ authorsRouter.get("/:authorId", (req, res) => {
 });
 
 authorsRouter.post("/", (req, res) => {
+  const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+  const existingMail = authors.find(
+    (author) => author.email === req.body.email
+  );
+
+  if (existingMail) {
+    res.status(400).send("Email address already exists");
+    console.log("Email address already exists");
+    return;
+  }
+
   const newAuthor = {
     ...req.body,
     createdAt: new Date(),
@@ -39,7 +50,6 @@ authorsRouter.post("/", (req, res) => {
     id: uniqid(),
   };
 
-  const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
   authors.push(newAuthor);
   fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
 
