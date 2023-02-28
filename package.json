@@ -1,0 +1,20 @@
+{
+  "type": "module",
+  "name": "u4-m1-d2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-list-endpoints": "^6.0.0",
+    "nodemon": "^2.0.20",
+    "uniqid": "^5.4.0"
+  }
+}
