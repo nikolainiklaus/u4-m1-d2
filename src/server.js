@@ -5,7 +5,8 @@ import blogPostsRouter from "./api/blogposts/index.js";
 import cors from "cors";
 
 const server = Express();
-const port = 3001;
+const port = process.env.PORT;
+console.log("port", port);
 server.use(cors());
 server.use(Express.json());
 server.use("/authors", authorsRouter);
