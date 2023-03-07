@@ -30,7 +30,7 @@ export const getPosts = async (postId) => {
     const blog = blogs.find((blog) => blog._id == postId);
     return blog;
   }
-  return authors;
+  return blogs;
 };
 
 export const addComment = async (postId, commentContent) => {

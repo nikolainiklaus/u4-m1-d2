@@ -7,6 +7,9 @@ const { readJSON, writeJSON, writeFile } = fs;
 import multer from "multer";
 import { extname } from "path";
 import { addComment, getPosts, savePostImage } from "../../lib/tools.js";
+import { log } from "console";
+import { getPDFReadableStream } from "../../lib/pdf-tools.js";
+import { pipeline } from "stream";
 
 const blogPostsRouter = express.Router();
 
@@ -126,6 +129,32 @@ blogPostsRouter.post("/:id/comments", async (req, res, next) => {
     next(error);
   }
   console.log("test");
+});
+
+blogPostsRouter.get("/:id/pdf", async (req, res, next) => {
+  try {
+    console.log("pdf has been triggered");
+    const posts = await getPosts();
+    const post = posts.find((post) => post._id == req.params.id);
+    if (post) {
+      console.log(post);
+      const pdfStream = await getPDFReadableStream(post);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${post.title}.pdf`
+      );
+      pipeline(pdfStream, res, (err) => {
+        if (err) {
+          console.log(err);
+          next(err);
+        }
+      });
+    } else {
+      console.log("post with this ID is not found");
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default blogPostsRouter;
