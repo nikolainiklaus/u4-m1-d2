@@ -10,6 +10,7 @@ import { addComment, getPosts, savePostImage } from "../../lib/tools.js";
 import { log } from "console";
 import { getPDFReadableStream } from "../../lib/pdf-tools.js";
 import { pipeline } from "stream";
+import BlogsModel from "./model.js";
 
 const blogPostsRouter = express.Router();
 
@@ -19,81 +20,153 @@ const blogPostsFilePath = join(
 );
 
 // GET /blogPosts => returns the list of blogposts
+
 blogPostsRouter.get("/", async (req, res, next) => {
   try {
-    const blogPosts = await readJSON(blogPostsFilePath);
-    res.send(blogPosts);
-  } catch (error) {
-    next(error);
-  }
+    const blogs = await BlogsModel.find();
+    res.send(blogs);
+  } catch (error) {}
 });
+
+// old version
+// blogPostsRouter.get("/", async (req, res, next) => {
+//   try {
+//     const blogPosts = await readJSON(blogPostsFilePath);
+//     res.send(blogPosts);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 // GET /blogPosts/123 => returns a single blogpost
+
 blogPostsRouter.get("/:id", async (req, res, next) => {
   try {
-    const blogPost = await getPosts(req.params.id);
+    const blogPost = await BlogsModel.findById(req.params.id);
     if (blogPost) {
-      res.send(blogPost);
+      res.status(202).send(blogPost);
     } else {
-      res.status(404).send("Blog post not found.");
+      res.status(404).send("Blog Post has not been found");
     }
   } catch (error) {
     next(error);
   }
 });
+
+// old version:
+// blogPostsRouter.get("/:id", async (req, res, next) => {
+//   try {
+//     const blogPost = await getPosts(req.params.id);
+//     if (blogPost) {
+//       res.send(blogPost);
+//     } else {
+//       res.status(404).send("Blog post not found.");
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 // POST /blogPosts => create a new blogpost
+
 blogPostsRouter.post("/", async (req, res, next) => {
   try {
-    const blogPosts = await readJSON(blogPostsFilePath);
-    const newBlogPost = {
-      _id: uniqid(),
-      ...req.body,
-      createdAt: new Date(),
-    };
-    blogPosts.push(newBlogPost);
-    await writeJSON(blogPostsFilePath, blogPosts);
-    res.send(newBlogPost);
-  } catch (error) {
-    next(error);
-  }
+    const newBlog = new BlogsModel(req.body);
+    const createdBlog = await newBlog.save();
+    res.status(201).send(createdBlog);
+  } catch (error) {}
 });
 
+// old
+// blogPostsRouter.post("/", async (req, res, next) => {
+//   try {
+//     const blogPosts = await readJSON(blogPostsFilePath);
+//     const newBlogPost = {
+//       _id: uniqid(),
+//       ...req.body,
+//       createdAt: new Date(),
+//     };
+//     blogPosts.push(newBlogPost);
+//     await writeJSON(blogPostsFilePath, blogPosts);
+//     res.send(newBlogPost);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 // PUT /blogPosts/123 => edit the blogpost with the given id
+
 blogPostsRouter.put("/:id", async (req, res, next) => {
   try {
-    const blogPosts = await readJSON(blogPostsFilePath);
-    const index = blogPosts.findIndex((post) => post._id === req.params.id);
-    if (index !== -1) {
-      const updatedBlogPost = {
-        ...blogPosts[index],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-      blogPosts[index] = updatedBlogPost;
-      await writeJSON(blogPostsFilePath, blogPosts);
-      res.send(updatedBlogPost);
+    const updatedBlog = await BlogsModel.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (updatedBlog) {
+      res.send(updatedBlog);
     } else {
-      res.status(404).send("Blog post not found.");
+      res.status(404).send("Blog with this ID not found");
     }
   } catch (error) {
     next(error);
   }
 });
 
+// old version:
+// blogPostsRouter.put("/:id", async (req, res, next) => {
+//   try {
+//     const blogPosts = await readJSON(blogPostsFilePath);
+//     const index = blogPosts.findIndex((post) => post._id === req.params.id);
+//     if (index !== -1) {
+//       const updatedBlogPost = {
+//         ...blogPosts[index],
+//         ...req.body,
+//         updatedAt: new Date(),
+//       };
+//       blogPosts[index] = updatedBlogPost;
+//       await writeJSON(blogPostsFilePath, blogPosts);
+//       res.send(updatedBlogPost);
+//     } else {
+//       res.status(404).send("Blog post not found.");
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 // DELETE /blogPosts/123 => delete the blogpost with the given id
+
 blogPostsRouter.delete("/:id", async (req, res, next) => {
   try {
-    const blogPosts = await readJSON(blogPostsFilePath);
-    const remainingBlogPosts = blogPosts.filter(
-      (post) => post._id !== req.params.id
-    );
-    await writeJSON(blogPostsFilePath, remainingBlogPosts);
-    res.status(204).send();
+    const deletedBlog = await BlogsModel.findOneAndDelete(req.params.id);
+    if (deletedBlog) {
+      res.send("blog has been deleted");
+    } else {
+      res.status(404).send("Blog with this ID has not been found");
+    }
   } catch (error) {
     next(error);
   }
 });
+
+// old version:
+// blogPostsRouter.delete("/:id", async (req, res, next) => {
+//   try {
+//     const blogPosts = await readJSON(blogPostsFilePath);
+//     const remainingBlogPosts = blogPosts.filter(
+//       (post) => post._id !== req.params.id
+//     );
+//     await writeJSON(blogPostsFilePath, remainingBlogPosts);
+//     res.status(204).send();
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 blogPostsRouter.post(
   "/:id/uploadCover",
