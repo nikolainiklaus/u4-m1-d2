@@ -1,1 +1,54 @@
-[{"name":"Nikolai","surname":"Niklaus","email":"nik@puzzle.vc","id":"123","date-of-birth":"05.03.1993","avatar":"https://ui-avatars.com/api/?name=Nikolai+Niklaus"},{"name":"Michael","surname":"Linz","id":"234","email":"mike@puzzle.vc","date-of-birth":"12.08.1993","avatar":"https://ui-avatars.com/api/?name=Michael+Linz"},{"name":"Nikolai","surname":"Niklaus","email":"nik@puzzles.vc","id":"1c8f1of0leodmyq4","date-of-birth":"05.03.1993","avatar":"https://ui-avatars.com/api/?name=Nikolai+Niklaus","createdAt":"2023-02-28T15:01:33.386Z","updatedAt":"2023-02-28T15:01:33.386Z"},{"name":"Aniko","surname":"Levels","email":"nik@testadlfkajlsdf.vc","id":"1c8f1pebleoe8cfk","date-of-birth":"05.03.1993","createdAt":"2023-02-28T15:18:10.927Z","updatedAt":"2023-02-28T16:40:45.306Z","avatar":"https://ui-avatars.com/api/?name=AnikoLevels&background=990000&color=000000&size=250&font-size=0.5&length=2&rounded=true&bold=true&uppercase=true"},{"createdAt":"2023-03-02T14:16:13.238Z","updatedAt":"2023-03-02T14:16:13.238Z","avatar":"https://ui-avatars.com/api/?background=990000&color=000000&size=250&font-size=0.5&length=2&rounded=true&bold=true&uppercase=true","id":"1c8f11yl5ler6wd6f"}]
+[
+  {
+    "name": "Nikolai",
+    "surname": "Niklaus",
+    "email": "nik@puzzle.vc",
+    "id": "123",
+    "date-of-birth": "05.03.1993",
+    "avatar": "https://ui-avatars.com/api/?name=Nikolai+Niklaus"
+  },
+  {
+    "name": "Michael",
+    "surname": "Linz",
+    "id": "234",
+    "email": "mike@puzzle.vc",
+    "date-of-birth": "12.08.1993",
+    "avatar": "https://ui-avatars.com/api/?name=Michael+Linz"
+  },
+  {
+    "name": "Nikolai",
+    "surname": "Niklaus",
+    "email": "nik@puzzles.vc",
+    "id": "1c8f1of0leodmyq4",
+    "date-of-birth": "05.03.1993",
+    "avatar": "https://ui-avatars.com/api/?name=Nikolai+Niklaus",
+    "createdAt": "2023-02-28T15:01:33.386Z",
+    "updatedAt": "2023-02-28T15:01:33.386Z"
+  },
+  {
+    "name": "Aniko",
+    "surname": "Levels",
+    "email": "nik@testadlfkajlsdf.vc",
+    "id": "1c8f1pebleoe8cfk",
+    "date-of-birth": "05.03.1993",
+    "createdAt": "2023-02-28T15:18:10.927Z",
+    "updatedAt": "2023-02-28T16:40:45.306Z",
+    "avatar": "https://ui-avatars.com/api/?name=AnikoLevels&background=990000&color=000000&size=250&font-size=0.5&length=2&rounded=true&bold=true&uppercase=true"
+  },
+  {
+    "createdAt": "2023-03-02T14:16:13.238Z",
+    "updatedAt": "2023-03-02T14:16:13.238Z",
+    "avatar": "https://ui-avatars.com/api/?background=990000&color=000000&size=250&font-size=0.5&length=2&rounded=true&bold=true&uppercase=true",
+    "id": "1c8f11yl5ler6wd6f"
+  },
+  {
+    "name": "Max",
+    "surname": "Test",
+    "email": "max@test.com",
+    "date-of-birth": "05.03.1993",
+    "avatar": "https://ui-avatars.com/api/?name=MaxTest&background=990000&color=000000&size=250&font-size=0.5&length=2&rounded=true&bold=true&uppercase=true",
+    "createdAt": "2023-03-16T13:45:33.024Z",
+    "updatedAt": "2023-03-16T13:45:33.024Z",
+    "id": "1c8f113qlfb5yuld"
+  }
+]

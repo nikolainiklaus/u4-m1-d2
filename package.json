@@ -25,6 +25,7 @@
     "node-fetch": "^3.3.0",
     "nodemon": "^2.0.20",
     "pdfmake": "^0.2.7",
+    "query-to-mongo": "^0.10.2",
     "ui-avatars": "^1.0.0",
     "uniqid": "^5.4.0"
   }

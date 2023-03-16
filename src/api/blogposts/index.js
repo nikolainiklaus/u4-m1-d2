@@ -23,9 +23,19 @@ const blogPostsFilePath = join(
 
 blogPostsRouter.get("/", async (req, res, next) => {
   try {
-    const blogs = await BlogsModel.find();
+    const blogs = await BlogsModel.find()
+      .populate({
+        path: "author",
+        select: "name surname",
+      })
+      .populate({
+        path: "likes",
+        select: "firstName lastName",
+      });
     res.send(blogs);
-  } catch (error) {}
+  } catch (error) {
+    next(error);
+  }
 });
 
 // old version
@@ -74,7 +84,32 @@ blogPostsRouter.post("/", async (req, res, next) => {
     const newBlog = new BlogsModel(req.body);
     const createdBlog = await newBlog.save();
     res.status(201).send(createdBlog);
-  } catch (error) {}
+  } catch (error) {
+    next(error);
+  }
+});
+
+blogPostsRouter.post("/:id/likes", async (req, res, next) => {
+  const blogId = req.params.id;
+  const userId = req.body.userId;
+
+  try {
+    const blog = await BlogsModel.findOneAndUpdate(
+      { _id: blogId, likes: { $ne: userId } },
+      { $addToSet: { likes: userId } },
+      { new: true }
+    );
+    if (!blog) {
+      await BlogsModel.findOneAndUpdate(
+        { _id: blogId, likes: userId },
+        { $pull: { likes: userId } }
+      );
+    }
+    res.send(blog);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 });
 
 // old

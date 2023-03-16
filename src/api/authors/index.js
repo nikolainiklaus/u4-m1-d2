@@ -8,6 +8,7 @@ import uiavatars from "ui-avatars";
 import multer from "multer";
 import { extname } from "path";
 import { saveAuthorAvatar, readAuthors } from "../../lib/tools.js";
+import AuthorsModel from "./model.js";
 
 const authorsRouter = Express.Router();
 
@@ -21,7 +22,7 @@ const authorsJSONPath = join(parentFolderPath, "/authors.json");
 // console.log(parentFolderPath);
 // console.log(authorsJSONPath);
 
-authorsRouter.get("/", async (req, res) => {
+authorsRouter.get("/", async (req, res, next) => {
   try {
     const authors = await readAuthors();
     res.status(200).send(authors);
@@ -41,44 +42,55 @@ authorsRouter.get("/:authorId", async (req, res) => {
   }
 });
 
-authorsRouter.post("/", (req, res) => {
-  const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
-  const existingMail = authors.find(
-    (author) => author.email === req.body.email
-  );
-
-  if (existingMail) {
-    res.status(400).send("Email address already exists");
-    console.log("Email address already exists");
-    return;
+authorsRouter.post("/", async (req, res, next) => {
+  try {
+    const newAuthor = new AuthorsModel(req.body);
+    const createdAuthor = await newAuthor.save();
+    res.status(201).send(createdAuthor);
+  } catch (error) {
+    next(error);
   }
-
-  const avatarURL = uiavatars.generateAvatar({
-    uppercase: true,
-    name: req.body.name + req.body.surname,
-    background: "990000",
-    color: "000000",
-    fontsize: 0.5,
-    bold: true,
-    length: 2,
-    rounded: true,
-    size: 250,
-  });
-
-  const newAuthor = {
-    ...req.body,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    avatar: avatarURL,
-    id: uniqid(),
-  };
-
-  authors.push(newAuthor);
-  fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
-
-  res.status(201).send(newAuthor.id);
-  console.log("author created:", newAuthor.id);
 });
+
+//old
+// authorsRouter.post("/", (req, res) => {
+//   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+//   const existingMail = authors.find(
+//     (author) => author.email === req.body.email
+//   );
+
+//   if (existingMail) {
+//     res.status(400).send("Email address already exists");
+//     console.log("Email address already exists");
+//     return;
+//   }
+
+//   const avatarURL = uiavatars.generateAvatar({
+//     uppercase: true,
+//     name: req.body.name + req.body.surname,
+//     background: "990000",
+//     color: "000000",
+//     fontsize: 0.5,
+//     bold: true,
+//     length: 2,
+//     rounded: true,
+//     size: 250,
+//   });
+
+//   const newAuthor = {
+//     ...req.body,
+//     createdAt: new Date(),
+//     updatedAt: new Date(),
+//     avatar: avatarURL,
+//     id: uniqid(),
+//   };
+
+//   authors.push(newAuthor);
+//   fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
+
+//   res.status(201).send(newAuthor.id);
+//   console.log("author created:", newAuthor.id);
+// });
 
 authorsRouter.put("/:authorId", (req, res) => {
   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));

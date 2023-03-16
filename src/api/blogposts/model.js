@@ -16,10 +16,21 @@ const blogSchema = new Schema(
       avatar: { type: String },
     },
     content: { type: String, required: true },
+    author: { type: Schema.Types.ObjectId, ref: "Author" },
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,
   }
 );
+
+// blogSchema.static("findBlogsWithAuthor", async function (query) {
+//   const blogs = await this.find(query.criteria, query.options.fields)
+//     .limit(query.options.limit)
+//     .skip(query.options.skip)
+//     .sort(query.options.sort)
+//     .populate({ path: "author", select: "name surname" });
+//   return { blogs };
+// });
 
 export default model("Blog", blogSchema);

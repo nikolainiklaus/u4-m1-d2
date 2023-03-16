@@ -4,6 +4,7 @@ import authorsRouter from "./api/authors/index.js";
 import blogPostsRouter from "./api/blogposts/index.js";
 import cors from "cors";
 import mongoose from "mongoose";
+import usersRouter from "./api/users/index.js";
 
 const server = Express();
 const port = process.env.PORT;
@@ -37,6 +38,7 @@ server.use(
 server.use(Express.json());
 server.use("/authors", authorsRouter);
 server.use("/blogposts", blogPostsRouter);
+server.use("/users", usersRouter);
 
 mongoose.connection.on("connected", () => {
   console.log("connected to MongoDB");
