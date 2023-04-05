@@ -55,7 +55,7 @@ authorsRouter.get("/:authorId", JWTAuthMiddleware, async (req, res) => {
   }
 });
 
-authorsRouter.post("/", async (req, res, next) => {
+authorsRouter.post("/register", async (req, res, next) => {
   try {
     const newAuthor = new AuthorsModel(req.body);
     const { email, password } = req.body;
