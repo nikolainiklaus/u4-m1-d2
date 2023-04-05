@@ -11,6 +11,7 @@ import { log } from "console";
 import { getPDFReadableStream } from "../../lib/pdf-tools.js";
 import { pipeline } from "stream";
 import BlogsModel from "./model.js";
+import { basicAuthMiddleware } from "../../lib/basic.js";
 
 const blogPostsRouter = express.Router();
 
@@ -21,7 +22,7 @@ const blogPostsFilePath = join(
 
 // GET /blogPosts => returns the list of blogposts
 
-blogPostsRouter.get("/", async (req, res, next) => {
+blogPostsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
   try {
     const blogs = await BlogsModel.find()
       .populate({
@@ -50,7 +51,7 @@ blogPostsRouter.get("/", async (req, res, next) => {
 
 // GET /blogPosts/123 => returns a single blogpost
 
-blogPostsRouter.get("/:id", async (req, res, next) => {
+blogPostsRouter.get("/:id", basicAuthMiddleware, async (req, res, next) => {
   try {
     const blogPost = await BlogsModel.findById(req.params.id);
     if (blogPost) {
@@ -79,7 +80,7 @@ blogPostsRouter.get("/:id", async (req, res, next) => {
 
 // POST /blogPosts => create a new blogpost
 
-blogPostsRouter.post("/", async (req, res, next) => {
+blogPostsRouter.post("/", basicAuthMiddleware, async (req, res, next) => {
   try {
     const newBlog = new BlogsModel(req.body);
     const createdBlog = await newBlog.save();
@@ -89,28 +90,32 @@ blogPostsRouter.post("/", async (req, res, next) => {
   }
 });
 
-blogPostsRouter.post("/:id/likes", async (req, res, next) => {
-  const blogId = req.params.id;
-  const userId = req.body.userId;
+blogPostsRouter.post(
+  "/:id/likes",
+  basicAuthMiddleware,
+  async (req, res, next) => {
+    const blogId = req.params.id;
+    const userId = req.body.userId;
 
-  try {
-    const blog = await BlogsModel.findOneAndUpdate(
-      { _id: blogId, likes: { $ne: userId } },
-      { $addToSet: { likes: userId } },
-      { new: true }
-    );
-    if (!blog) {
-      await BlogsModel.findOneAndUpdate(
-        { _id: blogId, likes: userId },
-        { $pull: { likes: userId } }
+    try {
+      const blog = await BlogsModel.findOneAndUpdate(
+        { _id: blogId, likes: { $ne: userId } },
+        { $addToSet: { likes: userId } },
+        { new: true }
       );
+      if (!blog) {
+        await BlogsModel.findOneAndUpdate(
+          { _id: blogId, likes: userId },
+          { $pull: { likes: userId } }
+        );
+      }
+      res.send(blog);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Server error");
     }
-    res.send(blog);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server error");
   }
-});
+);
 
 // old
 // blogPostsRouter.post("/", async (req, res, next) => {
@@ -131,7 +136,7 @@ blogPostsRouter.post("/:id/likes", async (req, res, next) => {
 
 // PUT /blogPosts/123 => edit the blogpost with the given id
 
-blogPostsRouter.put("/:id", async (req, res, next) => {
+blogPostsRouter.put("/:id", basicAuthMiddleware, async (req, res, next) => {
   try {
     const updatedBlog = await BlogsModel.findByIdAndUpdate(
       req.params.id,
@@ -176,7 +181,7 @@ blogPostsRouter.put("/:id", async (req, res, next) => {
 
 // DELETE /blogPosts/123 => delete the blogpost with the given id
 
-blogPostsRouter.delete("/:id", async (req, res, next) => {
+blogPostsRouter.delete("/:id", basicAuthMiddleware, async (req, res, next) => {
   try {
     const deletedBlog = await BlogsModel.findOneAndDelete(req.params.id);
     if (deletedBlog) {
@@ -206,6 +211,7 @@ blogPostsRouter.delete("/:id", async (req, res, next) => {
 blogPostsRouter.post(
   "/:id/uploadCover",
   multer().single("cover"),
+  basicAuthMiddleware,
   async (req, res, next) => {
     try {
       const fileExtension = extname(req.file.originalname);
@@ -219,14 +225,18 @@ blogPostsRouter.post(
   }
 );
 
-blogPostsRouter.get("/:id/comments", async (req, res, next) => {
-  try {
-    const blog = await getPosts(req.params.id);
-    res.status(200).send(blog.comments);
-  } catch (error) {
-    console.log("blog not found");
+blogPostsRouter.get(
+  "/:id/comments",
+  basicAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const blog = await getPosts(req.params.id);
+      res.status(200).send(blog.comments);
+    } catch (error) {
+      console.log("blog not found");
+    }
   }
-});
+);
 
 blogPostsRouter.post("/:id/comments", async (req, res, next) => {
   try {
@@ -239,7 +249,7 @@ blogPostsRouter.post("/:id/comments", async (req, res, next) => {
   console.log("test");
 });
 
-blogPostsRouter.get("/:id/pdf", async (req, res, next) => {
+blogPostsRouter.get("/:id/pdf", basicAuthMiddleware, async (req, res, next) => {
   try {
     console.log("pdf has been triggered");
     const posts = await getPosts();

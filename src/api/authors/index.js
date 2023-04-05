@@ -9,6 +9,7 @@ import multer from "multer";
 import { extname } from "path";
 import { saveAuthorAvatar, readAuthors } from "../../lib/tools.js";
 import AuthorsModel from "./model.js";
+import { basicAuthMiddleware } from "../../lib/basic.js";
 
 const authorsRouter = Express.Router();
 
@@ -22,7 +23,7 @@ const authorsJSONPath = join(parentFolderPath, "/authors.json");
 // console.log(parentFolderPath);
 // console.log(authorsJSONPath);
 
-authorsRouter.get("/", async (req, res, next) => {
+authorsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
   try {
     const authors = await readAuthors();
     res.status(200).send(authors);
@@ -33,7 +34,7 @@ authorsRouter.get("/", async (req, res, next) => {
   }
 });
 
-authorsRouter.get("/:authorId", async (req, res) => {
+authorsRouter.get("/:authorId", basicAuthMiddleware, async (req, res) => {
   try {
     const author = await readAuthors(req.params.authorId);
     res.status(200).send(author);
@@ -45,8 +46,15 @@ authorsRouter.get("/:authorId", async (req, res) => {
 authorsRouter.post("/", async (req, res, next) => {
   try {
     const newAuthor = new AuthorsModel(req.body);
+    const { email, password } = req.body;
     const createdAuthor = await newAuthor.save();
     res.status(201).send(createdAuthor);
+    const encodedCredentials = Buffer.from(`${email}:${password}`).toString(
+      "base64"
+    );
+    console.log(
+      `New user created with email ${email} and credentials ${encodedCredentials}`
+    );
   } catch (error) {
     next(error);
   }
@@ -92,7 +100,7 @@ authorsRouter.post("/", async (req, res, next) => {
 //   console.log("author created:", newAuthor.id);
 // });
 
-authorsRouter.put("/:authorId", (req, res) => {
+authorsRouter.put("/:authorId", basicAuthMiddleware, (req, res) => {
   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
   const index = authors.findIndex(
     (author) => author.id === req.params.authorId
@@ -107,7 +115,7 @@ authorsRouter.put("/:authorId", (req, res) => {
   console.log("author updated:", updatedAuthor);
 });
 
-authorsRouter.delete("/:authorId", (req, res) => {
+authorsRouter.delete("/:authorId", basicAuthMiddleware, (req, res) => {
   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
   const remainingAuthors = authors.filter(
     (author) => author.id !== req.params.authorId
@@ -121,6 +129,7 @@ authorsRouter.delete("/:authorId", (req, res) => {
 
 authorsRouter.post(
   "/:authorId/uploadAvatar",
+  basicAuthMiddleware,
   multer().single("avatar"),
   async (req, res, next) => {
     try {
