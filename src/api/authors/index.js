@@ -7,9 +7,16 @@ import uniqid from "uniqid";
 import uiavatars from "ui-avatars";
 import multer from "multer";
 import { extname } from "path";
-import { saveAuthorAvatar, readAuthors } from "../../lib/tools.js";
+import {
+  saveAuthorAvatar,
+  readAuthors,
+  createAccessToken,
+} from "../../lib/tools.js";
 import AuthorsModel from "./model.js";
 import { basicAuthMiddleware } from "../../lib/basic.js";
+import { adminOnlyMiddleware } from "../../lib/admin.js";
+import createHttpError from "http-errors";
+import { JWTAuthMiddleware } from "../../lib/jwt.js";
 
 const authorsRouter = Express.Router();
 
@@ -23,18 +30,23 @@ const authorsJSONPath = join(parentFolderPath, "/authors.json");
 // console.log(parentFolderPath);
 // console.log(authorsJSONPath);
 
-authorsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
-  try {
-    const authors = await readAuthors();
-    res.status(200).send(authors);
-    console.log(authors);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
+authorsRouter.get(
+  "/",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const authors = await readAuthors();
+      res.status(200).send(authors);
+      console.log(authors);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+    }
   }
-});
+);
 
-authorsRouter.get("/:authorId", basicAuthMiddleware, async (req, res) => {
+authorsRouter.get("/:authorId", JWTAuthMiddleware, async (req, res) => {
   try {
     const author = await readAuthors(req.params.authorId);
     res.status(200).send(author);
@@ -100,7 +112,7 @@ authorsRouter.post("/", async (req, res, next) => {
 //   console.log("author created:", newAuthor.id);
 // });
 
-authorsRouter.put("/:authorId", basicAuthMiddleware, (req, res) => {
+authorsRouter.put("/:authorId", JWTAuthMiddleware, (req, res) => {
   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
   const index = authors.findIndex(
     (author) => author.id === req.params.authorId
@@ -115,7 +127,7 @@ authorsRouter.put("/:authorId", basicAuthMiddleware, (req, res) => {
   console.log("author updated:", updatedAuthor);
 });
 
-authorsRouter.delete("/:authorId", basicAuthMiddleware, (req, res) => {
+authorsRouter.delete("/:authorId", JWTAuthMiddleware, (req, res) => {
   const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
   const remainingAuthors = authors.filter(
     (author) => author.id !== req.params.authorId
@@ -129,7 +141,7 @@ authorsRouter.delete("/:authorId", basicAuthMiddleware, (req, res) => {
 
 authorsRouter.post(
   "/:authorId/uploadAvatar",
-  basicAuthMiddleware,
+  JWTAuthMiddleware,
   multer().single("avatar"),
   async (req, res, next) => {
     try {
@@ -142,5 +154,31 @@ authorsRouter.post(
     }
   }
 );
+
+authorsRouter.post("/login", async (req, res, next) => {
+  try {
+    // 1. Obtain credentials from req.body
+    const { email, password } = req.body;
+    console.log(req.body);
+
+    // 2. Verify the credentials
+    const author = await AuthorsModel.checkCredentials(email, password);
+
+    if (author) {
+      // 3.1 If credentials are fine --> create an access token (JWT) and send it back as a response);
+      console.log(author);
+      const payload = { _id: author._id, role: author.role };
+      const accessToken = await createAccessToken(payload);
+
+      res.send({ accessToken });
+      console.log(author);
+    } else {
+      // 3.2 If they are not --> trigger a 401 error
+      next(createHttpError(401, "Credentials are not ok!"));
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default authorsRouter;

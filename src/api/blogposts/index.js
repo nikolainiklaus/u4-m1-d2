@@ -12,6 +12,7 @@ import { getPDFReadableStream } from "../../lib/pdf-tools.js";
 import { pipeline } from "stream";
 import BlogsModel from "./model.js";
 import { basicAuthMiddleware } from "../../lib/basic.js";
+import { JWTAuthMiddleware } from "../../lib/jwt.js";
 
 const blogPostsRouter = express.Router();
 
@@ -22,7 +23,7 @@ const blogPostsFilePath = join(
 
 // GET /blogPosts => returns the list of blogposts
 
-blogPostsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const blogs = await BlogsModel.find()
       .populate({
@@ -51,7 +52,7 @@ blogPostsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
 
 // GET /blogPosts/123 => returns a single blogpost
 
-blogPostsRouter.get("/:id", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.get("/:id", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const blogPost = await BlogsModel.findById(req.params.id);
     if (blogPost) {
@@ -80,7 +81,7 @@ blogPostsRouter.get("/:id", basicAuthMiddleware, async (req, res, next) => {
 
 // POST /blogPosts => create a new blogpost
 
-blogPostsRouter.post("/", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const newBlog = new BlogsModel(req.body);
     const createdBlog = await newBlog.save();
@@ -136,7 +137,7 @@ blogPostsRouter.post(
 
 // PUT /blogPosts/123 => edit the blogpost with the given id
 
-blogPostsRouter.put("/:id", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.put("/:id", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const updatedBlog = await BlogsModel.findByIdAndUpdate(
       req.params.id,
@@ -181,7 +182,7 @@ blogPostsRouter.put("/:id", basicAuthMiddleware, async (req, res, next) => {
 
 // DELETE /blogPosts/123 => delete the blogpost with the given id
 
-blogPostsRouter.delete("/:id", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.delete("/:id", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const deletedBlog = await BlogsModel.findOneAndDelete(req.params.id);
     if (deletedBlog) {
@@ -227,7 +228,7 @@ blogPostsRouter.post(
 
 blogPostsRouter.get(
   "/:id/comments",
-  basicAuthMiddleware,
+  JWTAuthMiddleware,
   async (req, res, next) => {
     try {
       const blog = await getPosts(req.params.id);
@@ -238,18 +239,22 @@ blogPostsRouter.get(
   }
 );
 
-blogPostsRouter.post("/:id/comments", async (req, res, next) => {
-  try {
-    const newComment = await addComment(req.params.id, req.body);
-    res.status(201).send(newComment);
-  } catch (error) {
-    console.log(error);
-    next(error);
+blogPostsRouter.post(
+  "/:id/comments",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const newComment = await addComment(req.params.id, req.body);
+      res.status(201).send(newComment);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+    console.log("test");
   }
-  console.log("test");
-});
+);
 
-blogPostsRouter.get("/:id/pdf", basicAuthMiddleware, async (req, res, next) => {
+blogPostsRouter.get("/:id/pdf", JWTAuthMiddleware, async (req, res, next) => {
   try {
     console.log("pdf has been triggered");
     const posts = await getPosts();
