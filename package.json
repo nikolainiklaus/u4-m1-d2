@@ -29,6 +29,8 @@
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.0",
     "nodemon": "^2.0.20",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
     "pdfmake": "^0.2.7",
     "query-to-mongo": "^0.10.2",
     "ui-avatars": "^1.0.0",

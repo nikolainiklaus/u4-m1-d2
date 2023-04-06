@@ -17,6 +17,7 @@ import { basicAuthMiddleware } from "../../lib/basic.js";
 import { adminOnlyMiddleware } from "../../lib/admin.js";
 import createHttpError from "http-errors";
 import { JWTAuthMiddleware } from "../../lib/jwt.js";
+import passport from "passport";
 
 const authorsRouter = Express.Router();
 
@@ -29,6 +30,25 @@ const authorsJSONPath = join(parentFolderPath, "/authors.json");
 // console.log(fileToPath);
 // console.log(parentFolderPath);
 // console.log(authorsJSONPath);
+
+authorsRouter.get(
+  "/googleLogin",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authorsRouter.get(
+  "/googleRedirect",
+  passport.authenticate("google", { session: false }),
+  (req, res, next) => {
+    try {
+      res.redirect(
+        `${process.env.FE_DEV_URL}?accessToken=${req.user.accessToken}`
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 authorsRouter.get(
   "/",

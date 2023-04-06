@@ -1,5 +1,6 @@
 import Express from "express";
 import listEndpoints from "express-list-endpoints";
+import passport from "passport";
 import authorsRouter from "./api/authors/index.js";
 import blogPostsRouter from "./api/blogposts/index.js";
 import cors from "cors";
@@ -11,6 +12,10 @@ import {
   notFoundErrorHandler,
   unauthorizedErrorHandler,
 } from "./errorHandlers.js";
+import googleStrategy from "./lib/googleOauth.js";
+// import googleStrategy from "./lib/auth/googleOauth.js";
+
+passport.use("google", googleStrategy);
 
 const server = Express();
 const port = process.env.PORT;
@@ -20,28 +25,12 @@ const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
 
 mongoose.connect(process.env.MONGO_URL);
 
-server.use(
-  cors({
-    origin: (currentOrigin, corsNext) => {
-      if (!currentOrigin || whitelist.indexOf(currentOrigin) !== -1) {
-        // origin is in the whitelist
-        corsNext(null, true);
-      } else {
-        // origin is not in the whitelist
-        corsNext(
-          createHttpError(
-            400,
-            `Origin ${currentOrigin} is not in the whitelist!`
-          )
-        );
-      }
-    },
-  })
-);
+server.use(cors());
 
 // server.use(cors());
 
 server.use(Express.json());
+server.use(passport.initialize());
 server.use("/authors", authorsRouter);
 server.use("/blogposts", blogPostsRouter);
 server.use("/users", usersRouter);
